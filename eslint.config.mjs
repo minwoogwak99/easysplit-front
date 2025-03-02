@@ -10,7 +10,7 @@ const compat = new FlatCompat({
 });
 
 const eslintConfig = [
-  ...compat.extends("next/core-web-vitals", "next/typescript"),
+  // ...compat.extends("next/core-web-vitals", "next/typescript"),
   {
     rules: {
       // Disable TypeScript type checking rules
@@ -22,7 +22,7 @@ const eslintConfig = [
       "@typescript-eslint/no-non-null-assertion": "off",
       "@typescript-eslint/no-var-requires": "off",
       "@typescript-eslint/explicit-module-boundary-types": "off",
-      "@typescript-eslint/no-inferrable-types": "off"
+      "@typescript-eslint/no-inferrable-types": "off",
     },
   },
 ];

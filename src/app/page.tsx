@@ -5,7 +5,7 @@ import Link from "next/link";
 export default function Home() {
   return (
     <div className="flex flex-col min-h-screen">
-      <header className="border-b bg-red-300">
+      <header className="border-b">
         <div className="flex h-16 items-center px-4">
           <Link href="/" className="flex items-center gap-2 font-semibold">
             <Receipt className="h-5 w-5" />
@@ -98,24 +98,6 @@ export default function Home() {
           </div>
         </section>
       </main>
-      <footer className="border-t py-6">
-        <div className="flex flex-col items-center justify-between gap-4 px-5 md:flex-row">
-          <p className="text-sm text-gray-500 dark:text-gray-400">
-            © 2024 SplitSnap. All rights reserved.
-          </p>
-          <nav className="flex gap-4 text-sm text-gray-500 dark:text-gray-400">
-            <Link href="#" className="hover:underline">
-              Terms
-            </Link>
-            <Link href="#" className="hover:underline">
-              Privacy
-            </Link>
-            <Link href="#" className="hover:underline">
-              Contact
-            </Link>
-          </nav>
-        </div>
-      </footer>
     </div>
   );
 }

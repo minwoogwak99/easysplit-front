@@ -13,7 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { auth } from "@/lib/firebase";
 import { getUserSessions } from "@/lib/session-service";
 import { BillSession } from "@/type/types";
-import { LogOut, Receipt, Settings, Upload } from "lucide-react";
+import { Receipt, Upload } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -126,7 +126,10 @@ export default function Dashboard() {
                 </div>
               </CardContent>
               <CardFooter>
-                <Link href={`/session-history/${session.id}`} className="w-full">
+                <Link
+                  href={`/session-history/${session.id}`}
+                  className="w-full"
+                >
                   <Button variant="outline" className="w-full">
                     View History
                   </Button>
@@ -147,7 +150,7 @@ export default function Dashboard() {
             <Receipt className="h-5 w-5" />
             <span>EasySplit</span>
           </Link>
-          <div className="ml-auto flex items-center gap-4">
+          {/* <div className="ml-auto flex items-center gap-4">
             <span className="text-sm">{user.displayName || user.email}</span>
             <Link href="/profile">
               <Button variant="ghost" size="icon">
@@ -159,7 +162,7 @@ export default function Dashboard() {
               <LogOut className="h-5 w-5" />
               <span className="sr-only">Log out</span>
             </Button>
-          </div>
+          </div> */}
         </div>
       </header>
       <div className="flex flex-1">
