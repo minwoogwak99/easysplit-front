@@ -11,9 +11,17 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { endSession } from "@/lib/session-service";
+import { currentSessionAtom } from "@/store/atom";
+import { useAtom } from "jotai";
 import { Share } from "lucide-react";
+import { useParams, useRouter } from "next/navigation";
 
-const page = () => {
+const Page = () => {
+  const { sessionid } = useParams();
+  const router = useRouter();
+  const [currentSession, setCurrentSession] = useAtom(currentSessionAtom);
+
   return (
     <Card>
       <CardHeader>
@@ -26,18 +34,33 @@ const page = () => {
         <QrCodeGenerator />
 
         <div className="border-t pt-6">
-          <h3 className="text-lg font-medium mb-4">Bill Items</h3>
-          <BillItemsSelection />
+          <div className="flex justify-between pr-4">
+            <h3 className="text-lg font-medium mb-4">Bill Items</h3>
+            <div className="text-lg font-semibold">
+              Your group paid total: ${currentSession?.totalPaid}
+            </div>
+          </div>
+          <BillItemsSelection currentSessionId={sessionid as string} />
         </div>
       </CardContent>
+
       <CardFooter className="flex justify-between">
         <Button>
           <Share className="mr-2 h-4 w-4" />
           Share Link
+        </Button>
+        <Button
+          onClick={() => {
+            endSession(sessionid as string);
+            setCurrentSession(null);
+            router.push("/dashboard");
+          }}
+        >
+          End Session
         </Button>
       </CardFooter>
     </Card>
   );
 };
 
-export default page;
+export default Page;

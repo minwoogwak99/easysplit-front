@@ -15,15 +15,17 @@ export type BillSession = {
   createdBy: string;
   title?: string;
   items: BillItem[];
+  totalPaid: number;
   participants: {
     [userId: string]: {
       name: string;
       email?: string;
       items: string[]; // Array of item IDs
       totalAmount: number;
+      isPaid: boolean;
     };
   };
-  status: 'active' | 'completed' | 'cancelled';
+  status: "active" | "completed" | "cancelled";
 };
 
 export type SessionParticipant = {

@@ -12,7 +12,6 @@ import {
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { auth } from "@/lib/firebase";
-import { getUserParticipantSessions, getUserSessions } from "@/lib/session-service";
 import { BillSession } from "@/type/types";
 import { LogOut, Receipt, Settings, Upload } from "lucide-react";
 import Link from "next/link";
@@ -23,7 +22,9 @@ import { useAuthState } from "react-firebase-hooks/auth";
 export default function Dashboard() {
   const [user, loading] = useAuthState(auth);
   const [createdSessions, setCreatedSessions] = useState<BillSession[]>([]);
-  const [participantSessions, setParticipantSessions] = useState<BillSession[]>([]);
+  const [participantSessions, setParticipantSessions] = useState<BillSession[]>(
+    []
+  );
   const [sessionsLoading, setSessionsLoading] = useState(true);
   const router = useRouter();
 
@@ -33,38 +34,6 @@ export default function Dashboard() {
       router.push("/login");
     }
   }, [user, loading, router]);
-
-  useEffect(() => {
-    const fetchSessions = async () => {
-      if (user) {
-        try {
-          setSessionsLoading(true);
-          
-          // Fetch sessions created by the user
-          const userCreatedSessions = await getUserSessions(user.uid);
-          setCreatedSessions(userCreatedSessions);
-          
-          // Fetch sessions where the user is a participant
-          const userParticipantSessions = await getUserParticipantSessions(user.uid);
-          
-          // Filter out sessions that the user created (to avoid duplicates)
-          const filteredParticipantSessions = userParticipantSessions.filter(
-            (session) => session.createdBy !== user.uid
-          );
-          
-          setParticipantSessions(filteredParticipantSessions);
-        } catch (error) {
-          console.error("Error fetching sessions:", error);
-        } finally {
-          setSessionsLoading(false);
-        }
-      }
-    };
-
-    if (user) {
-      fetchSessions();
-    }
-  }, [user]);
 
   const handleLogout = async () => {
     try {
@@ -110,10 +79,10 @@ export default function Dashboard() {
             (sum, item) => sum + item.price,
             0
           );
-          
+
           // Count participants
           const participantCount = Object.keys(session.participants).length;
-          
+
           return (
             <Card key={session.id}>
               <CardHeader>
@@ -125,9 +94,7 @@ export default function Dashboard() {
               <CardContent>
                 <div className="flex justify-between">
                   <span>Total:</span>
-                  <span className="font-medium">
-                    ${totalAmount.toFixed(2)}
-                  </span>
+                  <span className="font-medium">${totalAmount.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Participants:</span>
@@ -161,9 +128,7 @@ export default function Dashboard() {
             <span>EasySplit</span>
           </Link>
           <div className="ml-auto flex items-center gap-4">
-            <span className="text-sm">
-              {user.displayName || user.email}
-            </span>
+            <span className="text-sm">{user.displayName || user.email}</span>
             <Link href="/profile">
               <Button variant="ghost" size="icon">
                 <Settings className="h-5 w-5" />
@@ -197,15 +162,20 @@ export default function Dashboard() {
                 <TabsTrigger value="created">Created by Me</TabsTrigger>
                 <TabsTrigger value="joined">Joined Sessions</TabsTrigger>
               </TabsList>
-              
+
               <TabsContent value="all">
                 <div>
-                  <h2 className="text-xl font-bold mb-4">Active Bill Sessions</h2>
+                  <h2 className="text-xl font-bold mb-4">
+                    Active Bill Sessions
+                  </h2>
                   {sessionsLoading ? (
                     <p>Loading your sessions...</p>
-                  ) : createdSessions.length === 0 && participantSessions.length === 0 ? (
+                  ) : createdSessions.length === 0 &&
+                    participantSessions.length === 0 ? (
                     <div className="rounded-lg border border-dashed p-8 text-center">
-                      <h3 className="text-lg font-medium mb-2">No active sessions</h3>
+                      <h3 className="text-lg font-medium mb-2">
+                        No active sessions
+                      </h3>
                       <p className="text-gray-500 mb-4">
                         You don't have any active bill splitting sessions.
                       </p>
@@ -218,58 +188,72 @@ export default function Dashboard() {
                     </div>
                   ) : (
                     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                      {[...createdSessions, ...participantSessions].map((session) => {
-                        // Calculate total bill amount
-                        const totalAmount = session.items.reduce(
-                          (sum, item) => sum + item.price,
-                          0
-                        );
-                        
-                        // Count participants
-                        const participantCount = Object.keys(session.participants).length;
-                        
-                        return (
-                          <Card key={session.id}>
-                            <CardHeader>
-                              <CardTitle>{session.title}</CardTitle>
-                              <CardDescription>
-                                Created {new Date(session.createdAt).toLocaleDateString()}
-                              </CardDescription>
-                            </CardHeader>
-                            <CardContent>
-                              <div className="flex justify-between">
-                                <span>Total:</span>
-                                <span className="font-medium">
-                                  ${totalAmount.toFixed(2)}
-                                </span>
-                              </div>
-                              <div className="flex justify-between">
-                                <span>Participants:</span>
-                                <span>{participantCount}</span>
-                              </div>
-                              <div className="flex justify-between">
-                                <span>Status:</span>
-                                <span className="capitalize">{session.status}</span>
-                              </div>
-                            </CardContent>
-                            <CardFooter>
-                              <Link href={`/session/${session.id}`} className="w-full">
-                                <Button variant="outline" className="w-full">
-                                  View Session
-                                </Button>
-                              </Link>
-                            </CardFooter>
-                          </Card>
-                        );
-                      })}
+                      {[...createdSessions, ...participantSessions].map(
+                        (session) => {
+                          // Calculate total bill amount
+                          const totalAmount = session.items.reduce(
+                            (sum, item) => sum + item.price,
+                            0
+                          );
+
+                          // Count participants
+                          const participantCount = Object.keys(
+                            session.participants
+                          ).length;
+
+                          return (
+                            <Card key={session.id}>
+                              <CardHeader>
+                                <CardTitle>{session.title}</CardTitle>
+                                <CardDescription>
+                                  Created{" "}
+                                  {new Date(
+                                    session.createdAt
+                                  ).toLocaleDateString()}
+                                </CardDescription>
+                              </CardHeader>
+                              <CardContent>
+                                <div className="flex justify-between">
+                                  <span>Total:</span>
+                                  <span className="font-medium">
+                                    ${totalAmount.toFixed(2)}
+                                  </span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span>Participants:</span>
+                                  <span>{participantCount}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span>Status:</span>
+                                  <span className="capitalize">
+                                    {session.status}
+                                  </span>
+                                </div>
+                              </CardContent>
+                              <CardFooter>
+                                <Link
+                                  href={`/session/${session.id}`}
+                                  className="w-full"
+                                >
+                                  <Button variant="outline" className="w-full">
+                                    View Session
+                                  </Button>
+                                </Link>
+                              </CardFooter>
+                            </Card>
+                          );
+                        }
+                      )}
                     </div>
                   )}
                 </div>
               </TabsContent>
-              
+
               <TabsContent value="created">
                 <div>
-                  <h2 className="text-xl font-bold mb-4">Sessions Created by Me</h2>
+                  <h2 className="text-xl font-bold mb-4">
+                    Sessions Created by Me
+                  </h2>
                   {sessionsLoading ? (
                     <p>Loading your sessions...</p>
                   ) : (
@@ -277,10 +261,12 @@ export default function Dashboard() {
                   )}
                 </div>
               </TabsContent>
-              
+
               <TabsContent value="joined">
                 <div>
-                  <h2 className="text-xl font-bold mb-4">Sessions I've Joined</h2>
+                  <h2 className="text-xl font-bold mb-4">
+                    Sessions I've Joined
+                  </h2>
                   {sessionsLoading ? (
                     <p>Loading your sessions...</p>
                   ) : (

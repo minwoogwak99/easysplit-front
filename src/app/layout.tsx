@@ -36,7 +36,9 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
+          {/* <AuthProvider> */}
           <JotaiProvider>{children}</JotaiProvider>
+          {/* </AuthProvider> */}
           <Toaster />
         </ThemeProvider>
       </body>

@@ -91,8 +91,6 @@ export default function ScanBill() {
         setCurrentSession(sessionData);
         setCurrentUser(participant);
 
-        // Move to the share step
-        setbillProcessStep("share");
         router.push("/session/" + sessionId);
       } else {
         setError("You must be logged in to create a session");
@@ -123,7 +121,7 @@ export default function ScanBill() {
           </h1>
 
           <Tabs value={billProcessStep} className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="upload">Upload Receipt</TabsTrigger>
               <TabsTrigger value="items">Review Items</TabsTrigger>
             </TabsList>
