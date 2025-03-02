@@ -9,7 +9,7 @@ export default function Home() {
         <div className="flex h-16 items-center px-4">
           <Link href="/" className="flex items-center gap-2 font-semibold">
             <Receipt className="h-5 w-5" />
-            <span>SplitSnap</span>
+            <span>EasySplit</span>
           </Link>
           <nav className="flex gap-4 ml-auto justify-end">
             <Link href="/login">
