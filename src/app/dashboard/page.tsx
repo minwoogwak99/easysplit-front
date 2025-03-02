@@ -126,9 +126,9 @@ export default function Dashboard() {
                 </div>
               </CardContent>
               <CardFooter>
-                <Link href={`/session/${session.id}`} className="w-full">
+                <Link href={`/session-history/${session.id}`} className="w-full">
                   <Button variant="outline" className="w-full">
-                    View Session
+                    View History
                   </Button>
                 </Link>
               </CardFooter>
@@ -251,11 +251,11 @@ export default function Dashboard() {
                               </CardContent>
                               <CardFooter>
                                 <Link
-                                  href={`/session/${session.id}`}
+                                  href={`/session-history/${session.id}`}
                                   className="w-full"
                                 >
                                   <Button variant="outline" className="w-full">
-                                    {"View Session"}
+                                    {"View History"}
                                   </Button>
                                 </Link>
                               </CardFooter>

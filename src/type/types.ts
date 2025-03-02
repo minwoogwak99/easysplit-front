@@ -4,6 +4,7 @@ export type BillItem = {
   name: string;
   price: number;
   quantity: number;
+  paidAmount: number; // Track how much has been paid for this item
   assignedTo?: string[]; // Array of user IDs who are paying for this item
 };
 

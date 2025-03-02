@@ -11,7 +11,11 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { auth } from "@/lib/firebase";
-import { joinSession, leaveSession } from "@/lib/session-service";
+import {
+  joinSession,
+  leaveSession,
+  markParticipantAsPaid,
+} from "@/lib/session-service";
 import { currentSessionAtom } from "@/store/atom";
 import { useAtomValue } from "jotai";
 import { ArrowLeft, Receipt } from "lucide-react";
@@ -27,6 +31,8 @@ export default function JoinSession() {
   const [user] = useAuthState(auth);
   const currentSession = useAtomValue(currentSessionAtom);
   const [isLeaving, setIsLeaving] = useState(false);
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+  const [authToken, setAuthToken] = useState<string | null>(null);
 
   const [signInWithGoogle] = useSignInWithGoogle(auth);
 
@@ -39,11 +45,17 @@ export default function JoinSession() {
   };
 
   useEffect(() => {
-    if (user) {
-      joinSession(sessionId, user.uid);
-      document.cookie = `authToken=${user.getIdToken()}; path=/;`;
-    }
-  }, [user]);
+    const setupUser = async () => {
+      if (user) {
+        joinSession(sessionId, user.uid);
+        const token = await user.getIdToken();
+        setAuthToken(token);
+        document.cookie = `authToken=${token}; path=/;`;
+      }
+    };
+
+    setupUser();
+  }, [user, sessionId]);
 
   const handleLeaveSession = async () => {
     if (!user) return;
@@ -56,6 +68,53 @@ export default function JoinSession() {
       console.error("Error leaving session:", error);
     } finally {
       setIsLeaving(false);
+    }
+  };
+
+  const handlePayment = async () => {
+    if (!user || !currentSession) return;
+
+    try {
+      setIsProcessingPayment(true);
+
+      // Check if the user has any items to pay for
+      const userItems = currentSession.participants[user.uid]?.items || [];
+      if (userItems.length === 0) {
+        alert("You don't have any items to pay for.");
+        setIsProcessingPayment(false);
+        return;
+      }
+
+      // Check if the user has already paid
+      if (currentSession.participants[user.uid]?.isPaid) {
+        alert("You have already paid for your items.");
+        setIsProcessingPayment(false);
+        return;
+      }
+
+      // Process the payment
+      await markParticipantAsPaid(sessionId, user.uid);
+
+      // const res = await fetch("/api/paybill", {
+      //   method: "POST",
+      //   headers: {
+      //     "Content-Type": "application/json",
+      //   },
+      //   body: JSON.stringify({
+      //     billSessionId: sessionId,
+      //     payerId: user.uid,
+      //     authToken: authToken,
+      //   }),
+      // });
+      // const data = await res.json();
+      // console.log("Payment processed:", data);
+
+      alert("Payment successful!");
+    } catch (error) {
+      console.error("Error processing payment:", error);
+      alert("Payment failed. Please try again.");
+    } finally {
+      setIsProcessingPayment(false);
     }
   };
 
@@ -97,13 +156,21 @@ export default function JoinSession() {
               )}
             </CardContent>
             {user && (
-              <CardFooter className="flex flex-col gap-2">
+              <CardFooter className="flex flex-col gap-5">
                 <Button
                   variant="outline"
-                  onClick={() => router.push("/dashboard")}
+                  onClick={handlePayment}
                   className="w-full"
+                  disabled={
+                    isProcessingPayment ||
+                    currentSession?.participants[user.uid]?.isPaid
+                  }
                 >
-                  Done
+                  {isProcessingPayment
+                    ? "Processing..."
+                    : currentSession?.participants[user.uid]?.isPaid
+                    ? "Paid"
+                    : "Pay"}
                 </Button>
                 <Button
                   variant="destructive"

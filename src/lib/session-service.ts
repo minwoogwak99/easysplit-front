@@ -23,7 +23,10 @@ export async function createBillSession(
       createdAt: Date.now(),
       createdBy: user.uid,
       title: title || `Bill Session ${new Date().toLocaleDateString()}`,
-      items: items,
+      items: items.map(item => ({
+        ...item,
+        paidAmount: 0, // Initialize paidAmount to 0
+      })),
       totalPaid: 0,
       participants: {
         [user.uid]: {
@@ -75,6 +78,7 @@ export const joinSession = async (sessionId: string, userId: string) => {
         name: userAuth?.displayName || "Anonymous User",
         email: userAuth?.email || undefined,
         items: [],
+        isPaid: false,
         totalAmount: 0,
       },
     });
@@ -172,7 +176,7 @@ export const endSession = async (sessionId: string): Promise<void> => {
 
     // Update the session status to completed
     await updateDoc(sessionRef, {
-      status: "completed"
+      status: "completed",
     });
 
     console.log(`Session ${sessionId} has been successfully completed`);
@@ -348,7 +352,9 @@ export async function unassignItemFromUser(
 }
 
 // Fetch sessions for a user
-export const getUserSessions = async (userId: string): Promise<{
+export const getUserSessions = async (
+  userId: string
+): Promise<{
   createdSessions: BillSession[];
   participantSessions: BillSession[];
 }> => {
@@ -362,16 +368,18 @@ export const getUserSessions = async (userId: string): Promise<{
     const participantSessions: BillSession[] = [];
 
     // Import necessary Firestore functions
-    const { collection, query, where, getDocs } = await import("firebase/firestore");
+    const { collection, query, where, getDocs } = await import(
+      "firebase/firestore"
+    );
 
     // Query sessions created by the user
     const createdSessionsQuery = query(
       collection(db, SESSIONS_COLLECTION),
       where("createdBy", "==", userId)
     );
-    
+
     const createdSessionsSnapshot = await getDocs(createdSessionsQuery);
-    
+
     createdSessionsSnapshot.forEach((doc) => {
       createdSessions.push(doc.data() as BillSession);
     });
@@ -381,9 +389,9 @@ export const getUserSessions = async (userId: string): Promise<{
       collection(db, SESSIONS_COLLECTION),
       where(`participants.${userId}`, "!=", null)
     );
-    
+
     const participantSessionsSnapshot = await getDocs(participantSessionsQuery);
-    
+
     participantSessionsSnapshot.forEach((doc) => {
       const sessionData = doc.data() as BillSession;
       // Only add to participantSessions if the user didn't create it
@@ -398,3 +406,68 @@ export const getUserSessions = async (userId: string): Promise<{
     return { createdSessions: [], participantSessions: [] };
   }
 };
+
+// Mark a participant as paid and update total paid amount
+export async function markParticipantAsPaid(
+  sessionId: string,
+  userId: string
+): Promise<void> {
+  try {
+    const sessionRef = doc(db, SESSIONS_COLLECTION, sessionId);
+    const sessionSnap = await getDoc(sessionRef);
+
+    if (!sessionSnap.exists()) {
+      throw new Error("Session not found");
+    }
+
+    const session = sessionSnap.data() as BillSession;
+
+    // Check if the user is a participant
+    if (!session.participants[userId]) {
+      throw new Error("User is not a participant in this session");
+    }
+
+    // Check if the user is already marked as paid
+    if (session.participants[userId].isPaid) {
+      console.log("User is already marked as paid");
+      return;
+    }
+
+    // Get the user's total amount
+    const userTotalAmount = session.participants[userId].totalAmount;
+    
+    // Get the user's items
+    const userItems = session.participants[userId].items;
+    
+    // Create a copy of the items array to update paidAmount for each item
+    const updatedItems = [...session.items];
+    
+    // Update paidAmount for each item the user is assigned to
+    userItems.forEach(itemId => {
+      const itemIndex = updatedItems.findIndex(item => item.id === itemId);
+      if (itemIndex !== -1) {
+        const item = updatedItems[itemIndex];
+        const assignedUsers = item.assignedTo || [];
+        
+        // Calculate the amount this user is responsible for
+        const pricePerPerson = item.price / assignedUsers.length;
+        
+        // Update the paidAmount
+        updatedItems[itemIndex] = {
+          ...item,
+          paidAmount: item.paidAmount + pricePerPerson
+        };
+      }
+    });
+
+    // Update the participant's isPaid status, the session's totalPaid amount, and the items
+    await updateDoc(sessionRef, {
+      [`participants.${userId}.isPaid`]: true,
+      totalPaid: session.totalPaid + userTotalAmount,
+      items: updatedItems
+    });
+  } catch (error) {
+    console.error("Error marking participant as paid:", error);
+    throw error;
+  }
+}
