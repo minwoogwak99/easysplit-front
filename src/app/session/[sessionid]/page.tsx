@@ -62,10 +62,7 @@ const Page = () => {
     const remainingAmount = Math.max(0, totalBillAmount - totalPaidAmount);
     const paymentPercentage =
       totalBillAmount > 0
-        ? Math.min(
-            100,
-            Math.round((totalPaidAmount / totalBillAmount) * 100)
-          )
+        ? Math.min(100, Math.round((totalPaidAmount / totalBillAmount) * 100))
         : 0;
 
     // Calculate how many items are fully paid
@@ -107,7 +104,7 @@ const Page = () => {
 
     try {
       setIsProcessingPayment(true);
-      
+
       // Check if the user has any items to pay for
       const userItems = currentSession.participants[user.uid]?.items || [];
       if (userItems.length === 0) {
@@ -115,14 +112,14 @@ const Page = () => {
         setIsProcessingPayment(false);
         return;
       }
-      
+
       // Check if the user has already paid
       if (currentSession.participants[user.uid]?.isPaid) {
         alert("You have already paid for your items.");
         setIsProcessingPayment(false);
         return;
       }
-      
+
       // Process the payment
       await markParticipantAsPaid(sessionid as string, user.uid);
       alert("Payment successful!");
@@ -188,13 +185,15 @@ const Page = () => {
               </div>
               <div className="text-lg font-semibold">
                 Your group paid total: $
-                {currentSession?.items.reduce((sum, item) => sum + item.paidAmount, 0).toFixed(2) || "0.00"}
+                {currentSession?.items
+                  .reduce((sum, item) => sum + item.paidAmount, 0)
+                  .toFixed(2) || "0.00"}
               </div>
             </div>
           </div>
 
           {/* Payment Progress Section */}
-          <div className="mb-6 bg-gray-50 p-4 rounded-lg">
+          <div className="mb-6 border p-4 rounded-lg">
             <div className="flex justify-between mb-2">
               <span className="text-sm font-medium">Payment Progress</span>
               <span className="text-sm font-medium">{percentage}%</span>
@@ -202,11 +201,11 @@ const Page = () => {
             <Progress value={percentage} className="h-2 mb-3" />
 
             <div className="grid grid-cols-2 gap-4 mt-2">
-              <div className="bg-white p-3 rounded-md border">
+              <div className=" p-3 rounded-md border">
                 <div className="text-sm text-gray-500">Total Bill</div>
                 <div className="text-lg font-bold">${total.toFixed(2)}</div>
               </div>
-              <div className="bg-white p-3 rounded-md border">
+              <div className=" p-3 rounded-md border">
                 <div className="text-sm text-gray-500">Remaining</div>
                 <div
                   className={cn(

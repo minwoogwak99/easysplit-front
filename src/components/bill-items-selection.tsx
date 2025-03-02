@@ -154,12 +154,16 @@ export function BillItemsSelection({
                     <div
                       key={item.id}
                       className={`flex flex-wrap items-center justify-between p-3 border rounded-md ${
-                        fullyPaid ? "bg-green-50" : "bg-green-50/50"
+                        fullyPaid
+                          ? "bg-green-50 dark:bg-gray-800"
+                          : "bg-green-50/50"
                       }`}
                     >
                       <div className="flex items-center space-x-3">
                         <CheckCircle2 className="h-4 w-4 text-green-500" />
-                        <span className="text-sm font-medium">{item.name}</span>
+                        <span className="text-sm font-medium dark:text-white">
+                          {item.name}
+                        </span>
                         {fullyPaid && (
                           <Badge
                             variant="outline"
@@ -214,12 +218,13 @@ export function BillItemsSelection({
           return (
             <div
               key={item.id}
+              onClick={() => handleItemSelection(item)}
               className={`flex items-center justify-between p-3 border rounded-md ${
                 fullyPaid
-                  ? "bg-green-50 border-green-200"
+                  ? "border-green-200"
                   : isSelected
                   ? "bg-blue-50/30 border-blue-100"
-                  : "hover:bg-gray-50"
+                  : ""
               }`}
             >
               <div className="flex items-center space-x-3">

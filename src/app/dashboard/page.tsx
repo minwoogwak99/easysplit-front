@@ -17,7 +17,7 @@ import { Receipt, Upload } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { useAuthState } from "react-firebase-hooks/auth";
+import { useAuthState, useSignOut } from "react-firebase-hooks/auth";
 
 export default function Dashboard() {
   const [user, loading] = useAuthState(auth);
@@ -27,13 +27,9 @@ export default function Dashboard() {
   );
   const [sessionsLoading, setSessionsLoading] = useState(true);
   const router = useRouter();
+  const [signOut] = useSignOut(auth);
 
   useEffect(() => {
-    // Redirect to login if not authenticated
-    if (!loading && !user) {
-      router.push("/login");
-    }
-
     // Fetch user sessions when user is authenticated
     if (user) {
       const fetchSessions = async () => {
@@ -56,21 +52,11 @@ export default function Dashboard() {
   }, [user, loading, router]);
 
   const handleLogout = async () => {
-    try {
-      await auth.signOut();
-      router.push("/login");
-    } catch (error) {
-      console.error("Error signing out:", error);
-    }
+    await signOut();
+    router.push("/");
+    document.cookie =
+      "authToken=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
   };
-
-  if (loading || !user) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <p>Loading...</p>
-      </div>
-    );
-  }
 
   // Helper function to render session cards
   const renderSessionCards = (sessions: BillSession[]) => {
@@ -156,19 +142,13 @@ export default function Dashboard() {
             <Receipt className="h-5 w-5" />
             <span>EasySplit</span>
           </Link>
-          {/* <div className="ml-auto flex items-center gap-4">
-            <span className="text-sm">{user.displayName || user.email}</span>
-            <Link href="/profile">
-              <Button variant="ghost" size="icon">
-                <Settings className="h-5 w-5" />
-                <span className="sr-only">Settings</span>
-              </Button>
-            </Link>
-            <Button variant="ghost" size="icon" onClick={handleLogout}>
-              <LogOut className="h-5 w-5" />
-              <span className="sr-only">Log out</span>
-            </Button>
-          </div> */}
+          <Link
+            onClick={handleLogout}
+            href="/"
+            className="flex items-center gap-2 font-semibold ml-auto"
+          >
+            <span>Logout</span>
+          </Link>
         </div>
       </header>
       <div className="flex flex-1">

@@ -7,7 +7,7 @@ export function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname;
 
   // Define public paths that don't require authentication
-  const isPublicPath = path === "/login" || path === "/";
+  const isPublicPath = path === "/login";
 
   // Get the token from the cookies
   const token = request.cookies.get("authToken")?.value || "";
