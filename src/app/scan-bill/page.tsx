@@ -2,7 +2,6 @@
 
 import { BillItemsList } from "@/components/bill-items-list";
 import { ImageUploader } from "@/components/image-uploader";
-import { QrCodeGenerator } from "@/components/qr-code-generator";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -12,15 +11,99 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { billItemsAtom, billProcessStepAtom } from "@/store/atom";
+import { auth } from "@/lib/firebase";
+import { createBillSession } from "@/lib/session-service";
+import {
+  billItemsAtom,
+  billProcessStepAtom,
+  currentSessionAtom,
+  currentUserAtom,
+} from "@/store/atom";
+import { BillSession, SessionParticipant } from "@/type/types";
 import { useAtom } from "jotai";
-import { ArrowLeft, Receipt, Share } from "lucide-react";
+import { ArrowLeft, Receipt } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { useAuthState } from "react-firebase-hooks/auth";
 
 export default function ScanBill() {
   const [billProcessStep, setbillProcessStep] = useAtom(billProcessStepAtom);
   const [billItems, setBillItems] = useAtom(billItemsAtom);
+  const [, setCurrentSession] = useAtom(currentSessionAtom);
+  const [, setCurrentUser] = useAtom(currentUserAtom);
+  const [sessionTitle, setSessionTitle] = useState("");
+  const [isCreatingSession, setIsCreatingSession] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [user] = useAuthState(auth);
+
+  const router = useRouter();
+
+  const handleCreateSplittingSession = async () => {
+    if (billItems.length === 0) {
+      setError("Please add at least one item to create a session");
+      return;
+    }
+
+    setIsCreatingSession(true);
+    setError(null);
+
+    try {
+      // Create a new session in Firestore
+      const sessionId = await createBillSession(
+        billItems,
+        sessionTitle || undefined
+      );
+
+      if (user) {
+        // Create a participant object for the current user
+        const participant: SessionParticipant = {
+          id: user.uid,
+          name: user.displayName || "Session Creator",
+          email: user.email || undefined,
+          items: [],
+          totalAmount: 0,
+        };
+
+        // Get the session data
+        const sessionData: BillSession = {
+          id: sessionId,
+          createdAt: Date.now(),
+          createdBy: user.uid,
+          title:
+            sessionTitle || `Bill Session ${new Date().toLocaleDateString()}`,
+          items: billItems,
+          participants: {
+            [user.uid]: {
+              name: user.displayName || "Session Creator",
+              email: user.email || undefined,
+              items: [],
+              totalAmount: 0,
+            },
+          },
+          status: "active",
+        };
+
+        // Update the atoms
+        setCurrentSession(sessionData);
+        setCurrentUser(participant);
+
+        // Move to the share step
+        setbillProcessStep("share");
+        router.push("/session/" + sessionId);
+      } else {
+        setError("You must be logged in to create a session");
+      }
+    } catch (error) {
+      console.error("Error creating session:", error);
+      setError("Failed to create session. Please try again.");
+    } finally {
+      setIsCreatingSession(false);
+    }
+  };
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -38,13 +121,11 @@ export default function ScanBill() {
             <Receipt className="mr-2 h-6 w-6" />
             Scan & Split Bill
           </h1>
-          <h2>{billItems.map((item) => item.name)}</h2>
 
           <Tabs value={billProcessStep} className="w-full">
             <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="upload">Upload Receipt</TabsTrigger>
               <TabsTrigger value="items">Review Items</TabsTrigger>
-              <TabsTrigger value="share">Share & Split</TabsTrigger>
             </TabsList>
 
             {/* UPLOAD STEP */}
@@ -78,6 +159,22 @@ export default function ScanBill() {
                 </CardHeader>
                 <CardContent>
                   <BillItemsList />
+
+                  <div className="mt-6 space-y-2">
+                    <Label htmlFor="session-title">
+                      Session Title (Optional)
+                    </Label>
+                    <Input
+                      id="session-title"
+                      placeholder="Enter a title for this bill splitting session"
+                      value={sessionTitle}
+                      onChange={(e) => setSessionTitle(e.target.value)}
+                    />
+                  </div>
+
+                  {error && (
+                    <div className="mt-2 text-sm text-red-600">{error}</div>
+                  )}
                 </CardContent>
                 <CardFooter className="flex justify-between">
                   <Button
@@ -90,38 +187,12 @@ export default function ScanBill() {
                     Back
                   </Button>
                   <Button
-                    onClick={() => {
-                      setbillProcessStep("share");
-                    }}
+                    onClick={handleCreateSplittingSession}
+                    disabled={isCreatingSession}
                   >
-                    Create Splitting Session
-                  </Button>
-                </CardFooter>
-              </Card>
-            </TabsContent>
-
-            {/* SHARE CODE STEP */}
-            <TabsContent value="share">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Share with Friends</CardTitle>
-                  <CardDescription>
-                    Share this QR code with friends to split the bill.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <QrCodeGenerator />
-                </CardContent>
-                <CardFooter className="flex justify-between">
-                  <Button
-                    variant="outline"
-                    onClick={() => setbillProcessStep("items")}
-                  >
-                    Back
-                  </Button>
-                  <Button>
-                    <Share className="mr-2 h-4 w-4" />
-                    Share Link
+                    {isCreatingSession
+                      ? "Creating..."
+                      : "Create Splitting Session"}
                   </Button>
                 </CardFooter>
               </Card>

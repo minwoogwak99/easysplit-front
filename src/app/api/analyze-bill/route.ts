@@ -1,19 +1,19 @@
 import { NextResponse } from "next/server";
 
-// const serverurl = "https://easysplit-backend-4.onrender.com";
-const mlurl = "https://bill-analyzer.onrender.com";
+const serverurl = "https://easysplit-backend-4.onrender.com";
+// const mlurl = "https://bill-analyzer.onrender.com";
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
     const imgdata = body.imgdata;
-    // const authToken = body.authToken;
+    const authToken = body.authToken;
 
-    const response = await fetch(mlurl + "/analyzebill", {
+    const response = await fetch(serverurl + "/analyzebill", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        // Authorization: `Bearer ${authToken}`,
+        Authorization: `Bearer ${authToken}`,
       },
 
       body: JSON.stringify({ imgdata: imgdata }),
