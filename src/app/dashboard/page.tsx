@@ -1,6 +1,5 @@
 "use client";
 
-import { DashboardNav } from "@/components/dashboard-nav";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -12,6 +11,7 @@ import {
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { auth } from "@/lib/firebase";
+import { getUserSessions } from "@/lib/session-service";
 import { BillSession } from "@/type/types";
 import { LogOut, Receipt, Settings, Upload } from "lucide-react";
 import Link from "next/link";
@@ -32,6 +32,26 @@ export default function Dashboard() {
     // Redirect to login if not authenticated
     if (!loading && !user) {
       router.push("/login");
+    }
+
+    // Fetch user sessions when user is authenticated
+    if (user) {
+      const fetchSessions = async () => {
+        setSessionsLoading(true);
+        try {
+          const { createdSessions: created, participantSessions: joined } =
+            await getUserSessions(user.uid);
+
+          setCreatedSessions(created);
+          setParticipantSessions(joined);
+        } catch (error) {
+          console.error("Error fetching sessions:", error);
+        } finally {
+          setSessionsLoading(false);
+        }
+      };
+
+      fetchSessions();
     }
   }, [user, loading, router]);
 
@@ -59,7 +79,7 @@ export default function Dashboard() {
         <div className="rounded-lg border border-dashed p-8 text-center">
           <h3 className="text-lg font-medium mb-2">No active sessions</h3>
           <p className="text-gray-500 mb-4">
-            You don't have any active bill splitting sessions.
+            {" You don't have any active bill splitting sessions."}
           </p>
           <Link href="/scan-bill">
             <Button>
@@ -122,7 +142,7 @@ export default function Dashboard() {
   return (
     <div className="flex min-h-screen flex-col">
       <header className="border-b">
-        <div className="container flex h-16 items-center px-4 sm:px-6 lg:px-8">
+        <div className="flex h-16 items-center px-4">
           <Link href="/" className="flex items-center gap-2 font-semibold">
             <Receipt className="h-5 w-5" />
             <span>EasySplit</span>
@@ -143,7 +163,6 @@ export default function Dashboard() {
         </div>
       </header>
       <div className="flex flex-1">
-        <DashboardNav />
         <main className="flex-1 p-6">
           <div className="flex flex-col space-y-6">
             <div className="flex items-center justify-between">
@@ -177,7 +196,7 @@ export default function Dashboard() {
                         No active sessions
                       </h3>
                       <p className="text-gray-500 mb-4">
-                        You don't have any active bill splitting sessions.
+                        {"You don't have any active bill splitting sessions."}
                       </p>
                       <Link href="/scan-bill">
                         <Button>
@@ -236,7 +255,7 @@ export default function Dashboard() {
                                   className="w-full"
                                 >
                                   <Button variant="outline" className="w-full">
-                                    View Session
+                                    {"View Session"}
                                   </Button>
                                 </Link>
                               </CardFooter>
@@ -255,7 +274,7 @@ export default function Dashboard() {
                     Sessions Created by Me
                   </h2>
                   {sessionsLoading ? (
-                    <p>Loading your sessions...</p>
+                    <p>{"Loading your sessions..."}</p>
                   ) : (
                     renderSessionCards(createdSessions)
                   )}
@@ -265,10 +284,10 @@ export default function Dashboard() {
               <TabsContent value="joined">
                 <div>
                   <h2 className="text-xl font-bold mb-4">
-                    Sessions I've Joined
+                    {" Sessions I've Joined"}
                   </h2>
                   {sessionsLoading ? (
-                    <p>Loading your sessions...</p>
+                    <p>{"Loading your sessions..."}</p>
                   ) : (
                     renderSessionCards(participantSessions)
                   )}

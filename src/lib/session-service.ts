@@ -346,3 +346,55 @@ export async function unassignItemFromUser(
     throw error;
   }
 }
+
+// Fetch sessions for a user
+export const getUserSessions = async (userId: string): Promise<{
+  createdSessions: BillSession[];
+  participantSessions: BillSession[];
+}> => {
+  try {
+    if (!userId) {
+      throw new Error("User ID is required");
+    }
+
+    // Initialize empty arrays for sessions
+    const createdSessions: BillSession[] = [];
+    const participantSessions: BillSession[] = [];
+
+    // Import necessary Firestore functions
+    const { collection, query, where, getDocs } = await import("firebase/firestore");
+
+    // Query sessions created by the user
+    const createdSessionsQuery = query(
+      collection(db, SESSIONS_COLLECTION),
+      where("createdBy", "==", userId)
+    );
+    
+    const createdSessionsSnapshot = await getDocs(createdSessionsQuery);
+    
+    createdSessionsSnapshot.forEach((doc) => {
+      createdSessions.push(doc.data() as BillSession);
+    });
+
+    // Query sessions where the user is a participant but not the creator
+    const participantSessionsQuery = query(
+      collection(db, SESSIONS_COLLECTION),
+      where(`participants.${userId}`, "!=", null)
+    );
+    
+    const participantSessionsSnapshot = await getDocs(participantSessionsQuery);
+    
+    participantSessionsSnapshot.forEach((doc) => {
+      const sessionData = doc.data() as BillSession;
+      // Only add to participantSessions if the user didn't create it
+      if (sessionData.createdBy !== userId) {
+        participantSessions.push(sessionData);
+      }
+    });
+
+    return { createdSessions, participantSessions };
+  } catch (error) {
+    console.error("Error fetching user sessions:", error);
+    return { createdSessions: [], participantSessions: [] };
+  }
+};
