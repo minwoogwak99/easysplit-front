@@ -14,17 +14,14 @@ interface ImageUploaderProps {
 
 export function ImageUploader({ onImageProcessed }: ImageUploaderProps) {
   const [image, setImage] = useState<string | null>(null);
-  const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      setIsUploading(true);
       const reader = new FileReader();
       reader.onload = (event) => {
         setImage(event.target?.result as string);
-        setIsUploading(false);
       };
       reader.readAsDataURL(file);
     }
@@ -47,18 +44,28 @@ export function ImageUploader({ onImageProcessed }: ImageUploaderProps) {
   };
 
   const handleProcessImage = () => {
-    // In a real app, this would send the image to the server for processing
     if (onImageProcessed) {
-      // Simulate server processing
-      setTimeout(() => {
-        onImageProcessed([
-          { id: 1, name: "Pasta Carbonara", price: 15.99 },
-          { id: 2, name: "Margherita Pizza", price: 12.5 },
-          { id: 3, name: "Tiramisu", price: 7.99 },
-          { id: 4, name: "Sparkling Water", price: 3.5 },
-          { id: 5, name: "Caesar Salad", price: 9.99 },
-        ]);
-      }, 1000);
+      try {
+        const base64Image = image?.split(",")[1];
+
+        fetch("/api/analyze-bill", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ imgdata: base64Image }),
+        })
+          .then((response) => {
+            return response.json();
+          })
+          .then((data) => {
+            console.log("aaaaaaa", data);
+            data = JSON.parse(data);
+            onImageProcessed(data.items);
+          });
+      } catch (error) {
+        console.error("Error processing receipt:", error);
+      }
     }
   };
 
@@ -96,6 +103,8 @@ export function ImageUploader({ onImageProcessed }: ImageUploaderProps) {
           <Image
             src={image || "/placeholder.svg"}
             alt="Receipt"
+            width={0}
+            height={0}
             className="w-full h-auto max-h-96 object-contain rounded-md"
           />
           <Button

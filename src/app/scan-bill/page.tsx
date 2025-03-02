@@ -1,32 +1,40 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { ImageUploader } from "@/components/image-uploader"
-import { BillItemsList } from "@/components/bill-items-list"
-import { QrCodeGenerator } from "@/components/qr-code-generator"
-import { ArrowLeft, Receipt, Share } from "lucide-react"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { BillItemsList } from "@/components/bill-items-list";
+import { ImageUploader } from "@/components/image-uploader";
+import { QrCodeGenerator } from "@/components/qr-code-generator";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ArrowLeft, Receipt, Share } from "lucide-react";
+import Link from "next/link";
+import { useState } from "react";
 
 export default function ScanBill() {
-  const [currentStep, setCurrentStep] = useState("upload")
-  const [billItems, setBillItems] = useState([])
-  const [sessionId, setSessionId] = useState("")
+  const [currentStep, setCurrentStep] = useState("upload");
+  const [billItems, setBillItems] = useState([]);
+  const [sessionId, setSessionId] = useState("");
 
   const handleImageProcessed = (items) => {
     // This would be called after the server processes the image
-    setBillItems(items)
-    setCurrentStep("items")
-  }
+    setBillItems(items);
+    setCurrentStep("items");
+  };
 
   const handleCreateSession = () => {
     // This would create a session in Firebase
-    const newSessionId = "session-" + Math.random().toString(36).substring(2, 9)
-    setSessionId(newSessionId)
-    setCurrentStep("share")
-  }
+    const newSessionId =
+      "session-" + Math.random().toString(36).substring(2, 9);
+    setSessionId(newSessionId);
+    setCurrentStep("share");
+  };
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -56,7 +64,9 @@ export default function ScanBill() {
               <Card>
                 <CardHeader>
                   <CardTitle>Upload Receipt</CardTitle>
-                  <CardDescription>Take a photo of your receipt or upload an existing one.</CardDescription>
+                  <CardDescription>
+                    Take a photo of your receipt or upload an existing one.
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <ImageUploader onImageProcessed={handleImageProcessed} />
@@ -64,20 +74,6 @@ export default function ScanBill() {
                 <CardFooter className="flex justify-between">
                   <Button variant="outline" asChild>
                     <Link href="/dashboard">Cancel</Link>
-                  </Button>
-                  <Button
-                    onClick={() => {
-                      // For demo purposes, we'll use sample data
-                      handleImageProcessed([
-                        { id: 1, name: "Pasta Carbonara", price: 15.99 },
-                        { id: 2, name: "Margherita Pizza", price: 12.5 },
-                        { id: 3, name: "Tiramisu", price: 7.99 },
-                        { id: 4, name: "Sparkling Water", price: 3.5 },
-                        { id: 5, name: "Caesar Salad", price: 9.99 },
-                      ])
-                    }}
-                  >
-                    Process Receipt
                   </Button>
                 </CardFooter>
               </Card>
@@ -87,16 +83,23 @@ export default function ScanBill() {
               <Card>
                 <CardHeader>
                   <CardTitle>Review Items</CardTitle>
-                  <CardDescription>Verify the items detected from your receipt.</CardDescription>
+                  <CardDescription>
+                    Verify the items detected from your receipt.
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <BillItemsList items={billItems} />
                 </CardContent>
                 <CardFooter className="flex justify-between">
-                  <Button variant="outline" onClick={() => setCurrentStep("upload")}>
+                  <Button
+                    variant="outline"
+                    onClick={() => setCurrentStep("upload")}
+                  >
                     Back
                   </Button>
-                  <Button onClick={handleCreateSession}>Create Splitting Session</Button>
+                  <Button onClick={handleCreateSession}>
+                    Create Splitting Session
+                  </Button>
                 </CardFooter>
               </Card>
             </TabsContent>
@@ -105,14 +108,21 @@ export default function ScanBill() {
               <Card>
                 <CardHeader>
                   <CardTitle>Share with Friends</CardTitle>
-                  <CardDescription>Share this QR code with friends to split the bill.</CardDescription>
+                  <CardDescription>
+                    Share this QR code with friends to split the bill.
+                  </CardDescription>
                 </CardHeader>
                 <CardContent className="flex flex-col items-center">
                   <QrCodeGenerator sessionId={sessionId} />
-                  <p className="mt-4 text-center text-sm text-gray-500">Session ID: {sessionId}</p>
+                  <p className="mt-4 text-center text-sm text-gray-500">
+                    Session ID: {sessionId}
+                  </p>
                 </CardContent>
                 <CardFooter className="flex justify-between">
-                  <Button variant="outline" onClick={() => setCurrentStep("items")}>
+                  <Button
+                    variant="outline"
+                    onClick={() => setCurrentStep("items")}
+                  >
                     Back
                   </Button>
                   <Button>
@@ -126,6 +136,5 @@ export default function ScanBill() {
         </div>
       </main>
     </div>
-  )
+  );
 }
-

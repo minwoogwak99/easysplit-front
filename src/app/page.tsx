@@ -25,7 +25,7 @@ export default function Home() {
       </header>
       <main className="flex-1">
         <section className="w-full py-12">
-          <div className="container px-4">
+          <div className="px-4">
             <div className="flex flex-col items-center justify-center space-y-4 text-center">
               <div className="space-y-2">
                 <h1 className="text-4xl font-bold tracking-tighter">
@@ -57,7 +57,7 @@ export default function Home() {
           id="how-it-works"
           className="w-full py-12 bg-gray-50 dark:bg-gray-900"
         >
-          <div className="container px-4">
+          <div className="px-4">
             <div className="flex flex-col items-center justify-center space-y-4 text-center">
               <div className="space-y-2">
                 <h2 className="text-3xl font-bold tracking-tighter">
@@ -102,7 +102,7 @@ export default function Home() {
         </section>
       </main>
       <footer className="border-t py-6">
-        <div className="container flex flex-col items-center justify-between gap-4 px-5 md:flex-row">
+        <div className="flex flex-col items-center justify-between gap-4 px-5 md:flex-row">
           <p className="text-sm text-gray-500 dark:text-gray-400">
             © 2024 SplitSnap. All rights reserved.
           </p>
