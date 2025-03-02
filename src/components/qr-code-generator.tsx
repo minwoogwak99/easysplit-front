@@ -1,19 +1,15 @@
-"use client"
+"use client";
 
-import { useEffect, useRef } from "react"
-import QRCode from "qrcode"
+import QRCode from "qrcode";
+import { useEffect, useRef } from "react";
 
-interface QrCodeGeneratorProps {
-  sessionId: string
-}
-
-export function QrCodeGenerator({ sessionId }: QrCodeGeneratorProps) {
-  const canvasRef = useRef<HTMLCanvasElement>(null)
+export function QrCodeGenerator() {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
-    if (sessionId && canvasRef.current) {
+    if (canvasRef.current) {
       // In a real app, this would be your app's URL with the session ID
-      const url = `https://yourdomain.com/join/${sessionId}`
+      const url = `https://naver.com`;
 
       QRCode.toCanvas(
         canvasRef.current,
@@ -27,17 +23,18 @@ export function QrCodeGenerator({ sessionId }: QrCodeGeneratorProps) {
           },
         },
         (error) => {
-          if (error) console.error(error)
-        },
-      )
+          if (error) console.error(error);
+        }
+      );
     }
-  }, [sessionId])
+  }, []);
 
   return (
     <div className="flex flex-col items-center">
       <canvas ref={canvasRef} className="border rounded-lg p-2" />
-      <p className="mt-2 text-sm text-gray-500">Scan to join the bill splitting session</p>
+      <p className="mt-2 text-sm text-gray-500">
+        Scan to join the bill splitting session
+      </p>
     </div>
-  )
+  );
 }
-

@@ -72,14 +72,6 @@ export default function LoginPage() {
             Signin with Google
           </Button>
         </CardContent>
-        {/* <CardFooter className="flex justify-center">
-          <div className="text-sm text-muted-foreground">
-            Don&apos;t have an account?{" "}
-            <Link href="/signup" className="text-primary hover:underline">
-              Sign up
-            </Link>
-          </div>
-        </CardFooter> */}
       </Card>
     </div>
   );

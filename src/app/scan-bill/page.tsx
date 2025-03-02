@@ -13,28 +13,14 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { billItemsAtom, billProcessStepAtom } from "@/store/atom";
+import { useAtom } from "jotai";
 import { ArrowLeft, Receipt, Share } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
 
 export default function ScanBill() {
-  const [currentStep, setCurrentStep] = useState("upload");
-  const [billItems, setBillItems] = useState([]);
-  const [sessionId, setSessionId] = useState("");
-
-  const handleImageProcessed = (items) => {
-    // This would be called after the server processes the image
-    setBillItems(items);
-    setCurrentStep("items");
-  };
-
-  const handleCreateSession = () => {
-    // This would create a session in Firebase
-    const newSessionId =
-      "session-" + Math.random().toString(36).substring(2, 9);
-    setSessionId(newSessionId);
-    setCurrentStep("share");
-  };
+  const [billProcessStep, setbillProcessStep] = useAtom(billProcessStepAtom);
+  const [billItems, setBillItems] = useAtom(billItemsAtom);
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -52,14 +38,16 @@ export default function ScanBill() {
             <Receipt className="mr-2 h-6 w-6" />
             Scan & Split Bill
           </h1>
+          <h2>{billItems.map((item) => item.name)}</h2>
 
-          <Tabs value={currentStep} className="w-full">
+          <Tabs value={billProcessStep} className="w-full">
             <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="upload">Upload Receipt</TabsTrigger>
               <TabsTrigger value="items">Review Items</TabsTrigger>
               <TabsTrigger value="share">Share & Split</TabsTrigger>
             </TabsList>
 
+            {/* UPLOAD STEP */}
             <TabsContent value="upload">
               <Card>
                 <CardHeader>
@@ -69,7 +57,7 @@ export default function ScanBill() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <ImageUploader onImageProcessed={handleImageProcessed} />
+                  <ImageUploader />
                 </CardContent>
                 <CardFooter className="flex justify-between">
                   <Button variant="outline" asChild>
@@ -79,6 +67,7 @@ export default function ScanBill() {
               </Card>
             </TabsContent>
 
+            {/* ITEM CHECK STEP */}
             <TabsContent value="items">
               <Card>
                 <CardHeader>
@@ -88,22 +77,30 @@ export default function ScanBill() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <BillItemsList items={billItems} />
+                  <BillItemsList />
                 </CardContent>
                 <CardFooter className="flex justify-between">
                   <Button
                     variant="outline"
-                    onClick={() => setCurrentStep("upload")}
+                    onClick={() => {
+                      setBillItems([]);
+                      setbillProcessStep("upload");
+                    }}
                   >
                     Back
                   </Button>
-                  <Button onClick={handleCreateSession}>
+                  <Button
+                    onClick={() => {
+                      setbillProcessStep("share");
+                    }}
+                  >
                     Create Splitting Session
                   </Button>
                 </CardFooter>
               </Card>
             </TabsContent>
 
+            {/* SHARE CODE STEP */}
             <TabsContent value="share">
               <Card>
                 <CardHeader>
@@ -112,16 +109,13 @@ export default function ScanBill() {
                     Share this QR code with friends to split the bill.
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="flex flex-col items-center">
-                  <QrCodeGenerator sessionId={sessionId} />
-                  <p className="mt-4 text-center text-sm text-gray-500">
-                    Session ID: {sessionId}
-                  </p>
+                <CardContent>
+                  <QrCodeGenerator />
                 </CardContent>
                 <CardFooter className="flex justify-between">
                   <Button
                     variant="outline"
-                    onClick={() => setCurrentStep("items")}
+                    onClick={() => setbillProcessStep("items")}
                   >
                     Back
                   </Button>

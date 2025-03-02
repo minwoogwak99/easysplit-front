@@ -1,6 +1,6 @@
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Receipt, Upload, History, Users, Settings } from "lucide-react"
+import { Button } from "@/components/ui/button";
+import { History, Receipt, Settings, Upload, Users } from "lucide-react";
+import Link from "next/link";
 
 export function DashboardNav() {
   return (
@@ -42,6 +42,5 @@ export function DashboardNav() {
         </div>
       </div>
     </div>
-  )
+  );
 }
-

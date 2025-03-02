@@ -10,30 +10,25 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { billItemsAtom } from "@/store/atom";
+import { BillItem } from "@/type/types";
+import { useAtom } from "jotai";
 import { Plus, Trash } from "lucide-react";
 import { useState } from "react";
+import { v4 as uuidv4 } from "uuid";
 
-interface BillItem {
-  name: string;
-  price: number;
-  quantity: number;
-}
-
-interface BillItemsListProps {
-  items: BillItem[];
-}
-
-export function BillItemsList({ items: initialItems }: BillItemsListProps) {
-  const [items, setItems] = useState<BillItem[]>(initialItems || []);
+export function BillItemsList() {
+  const [billItems, setBillItems] = useAtom(billItemsAtom);
   const [newItem, setNewItem] = useState({ name: "", price: "" });
 
   const handleAddItem = () => {
     if (newItem.name && newItem.price) {
       const price = Number.parseFloat(newItem.price);
       if (!isNaN(price)) {
-        setItems([
-          ...items,
+        setBillItems([
+          ...billItems,
           {
+            id: uuidv4(),
             name: newItem.name,
             price,
             quantity: 1,
@@ -44,21 +39,24 @@ export function BillItemsList({ items: initialItems }: BillItemsListProps) {
     }
   };
 
-  const handleRemoveItem = (name: string) => {
-    setItems(items.filter((item) => item.name !== name));
+  const handleRemoveItem = (id: string) => {
+    setBillItems(billItems.filter((item) => item.id !== id));
   };
 
   const handleItemChange = (
-    name: string,
+    id: string,
     field: keyof BillItem,
     value: string
   ) => {
-    setItems(
-      items.map((item) => {
-        if (item.name === name) {
+    setBillItems(
+      billItems.map((item) => {
+        if (item.id === id) {
           if (field === "price") {
             const price = Number.parseFloat(value);
             return { ...item, [field]: isNaN(price) ? 0 : price };
+          } else if (field === "quantity") {
+            const quantity = Number.parseInt(value);
+            return { ...item, [field]: isNaN(quantity) ? 0 : quantity };
           }
           return { ...item, [field]: value };
         }
@@ -67,7 +65,10 @@ export function BillItemsList({ items: initialItems }: BillItemsListProps) {
     );
   };
 
-  const total = items.reduce((sum, item) => sum + item.price, 0);
+  const total = billItems.reduce(
+    (sum, item) => sum + item.price * (item.quantity || 1),
+    0
+  );
 
   return (
     <div className="space-y-4">
@@ -76,27 +77,40 @@ export function BillItemsList({ items: initialItems }: BillItemsListProps) {
           <TableRow>
             <TableHead>Item</TableHead>
             <TableHead>Price</TableHead>
+            <TableHead>Quantity</TableHead>
             <TableHead className="w-[100px]">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {items.map((item) => (
-            <TableRow key={item.name}>
+          {billItems.map((item) => (
+            <TableRow key={item.id}>
               <TableCell>
                 <Input
+                  className="min-w-[200px]"
                   value={item.name}
                   onChange={(e) =>
-                    handleItemChange(item.name, "name", e.target.value)
+                    handleItemChange(item.id, "name", e.target.value)
                   }
                 />
               </TableCell>
               <TableCell>
                 <Input
                   type="number"
-                  step="0.01"
+                  step="1"
                   value={item.price}
                   onChange={(e) =>
-                    handleItemChange(item.name, "price", e.target.value)
+                    handleItemChange(item.id, "price", e.target.value)
+                  }
+                  className="w-24"
+                />
+              </TableCell>
+              <TableCell>
+                <Input
+                  type="number"
+                  step={1}
+                  value={item.quantity}
+                  onChange={(e) =>
+                    handleItemChange(item.id, "quantity", e.target.value)
                   }
                   className="w-24"
                 />
@@ -105,7 +119,7 @@ export function BillItemsList({ items: initialItems }: BillItemsListProps) {
                 <Button
                   variant="destructive"
                   size="icon"
-                  onClick={() => handleRemoveItem(item.name)}
+                  onClick={() => handleRemoveItem(item.id)}
                 >
                   <Trash className="h-4 w-4" />
                 </Button>
@@ -124,7 +138,7 @@ export function BillItemsList({ items: initialItems }: BillItemsListProps) {
         <Input
           placeholder="Price"
           type="number"
-          step="0.01"
+          step="1"
           value={newItem.price}
           onChange={(e) => setNewItem({ ...newItem, price: e.target.value })}
           className="w-24"

@@ -1,7 +1,6 @@
 "use client";
 
 import { DashboardNav } from "@/components/dashboard-nav";
-import { ImageUploader } from "@/components/image-uploader";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -77,19 +76,6 @@ export default function Dashboard() {
                 </Button>
               </Link>
             </div>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Quick Upload</CardTitle>
-                <CardDescription>
-                  Take a photo of your receipt or upload an existing one to get
-                  started.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ImageUploader />
-              </CardContent>
-            </Card>
 
             <div>
               <h2 className="text-xl font-bold mb-4">Recent Bills</h2>

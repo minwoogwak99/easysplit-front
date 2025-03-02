@@ -17,9 +17,6 @@ export default function Home() {
                 Login
               </Button>
             </Link>
-            <Link href="/signup">
-              <Button size="sm">Sign Up</Button>
-            </Link>
           </nav>
         </div>
       </header>

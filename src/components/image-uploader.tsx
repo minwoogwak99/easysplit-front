@@ -4,15 +4,15 @@ import type React from "react";
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Camera, Upload, X } from "lucide-react";
+import { billItemsAtom, billProcessStepAtom } from "@/store/atom";
+import { useSetAtom } from "jotai";
+import { Upload, X } from "lucide-react";
 import Image from "next/image";
 import { useRef, useState } from "react";
 
-interface ImageUploaderProps {
-  onImageProcessed?: (items: any[]) => void;
-}
-
-export function ImageUploader({ onImageProcessed }: ImageUploaderProps) {
+export function ImageUploader() {
+  const setbillProcessStep = useSetAtom(billProcessStepAtom);
+  const setbillItems = useSetAtom(billItemsAtom);
   const [image, setImage] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -31,11 +31,6 @@ export function ImageUploader({ onImageProcessed }: ImageUploaderProps) {
     fileInputRef.current?.click();
   };
 
-  const handleCameraClick = () => {
-    // In a real app, this would open the device camera
-    alert("Camera functionality would open here");
-  };
-
   const handleRemoveImage = () => {
     setImage(null);
     if (fileInputRef.current) {
@@ -44,29 +39,24 @@ export function ImageUploader({ onImageProcessed }: ImageUploaderProps) {
   };
 
   const handleProcessImage = () => {
-    if (onImageProcessed) {
-      try {
-        const base64Image = image?.split(",")[1];
+    const base64Image = image?.split(",")[1];
 
-        fetch("/api/analyze-bill", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ imgdata: base64Image }),
-        })
-          .then((response) => {
-            return response.json();
-          })
-          .then((data) => {
-            console.log("aaaaaaa", data);
-            data = JSON.parse(data);
-            onImageProcessed(data.items);
-          });
-      } catch (error) {
-        console.error("Error processing receipt:", error);
-      }
-    }
+    fetch("/api/analyze-bill", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        imgdata: base64Image,
+      }),
+    })
+      .then((response) => {
+        return response.json();
+      })
+      .then((data) => {
+        setbillItems(data.items);
+        setbillProcessStep("items");
+      });
   };
 
   return (
@@ -90,10 +80,6 @@ export function ImageUploader({ onImageProcessed }: ImageUploaderProps) {
             <div className="flex gap-4">
               <Button onClick={handleUploadClick} variant="outline">
                 Upload File
-              </Button>
-              <Button onClick={handleCameraClick}>
-                <Camera className="mr-2 h-4 w-4" />
-                Take Photo
               </Button>
             </div>
           </div>

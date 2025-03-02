@@ -1,27 +1,24 @@
 import { NextResponse } from "next/server";
 
+// const serverurl = "https://easysplit-backend-4.onrender.com";
+const mlurl = "https://bill-analyzer.onrender.com";
+
 export async function POST(request: Request) {
   try {
     const body = await request.json();
+    const imgdata = body.imgdata;
+    // const authToken = body.authToken;
 
-    // Forward the request to the bill analyzer API using GET with a body
-    // Note: This is not standard HTTP behavior but some APIs accept it
-    const response = await fetch(
-      "https://bill-analyzer.onrender.com/analyzebill",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        // Using node-fetch or undici (which Next.js uses internally) allows sending body with GET
-        body: JSON.stringify({ imgdata: body.imgdata }),
-      }
-    );
+    const response = await fetch(mlurl + "/analyzebill", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        // Authorization: `Bearer ${authToken}`,
+      },
 
-    // Get the response data
+      body: JSON.stringify({ imgdata: imgdata }),
+    });
     const data = await response.json();
-
-    // Return the response
     return NextResponse.json(data);
   } catch (error) {
     console.error("Error analyzing bill:", error);
