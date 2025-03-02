@@ -32,6 +32,7 @@ export function BillItemsList() {
             name: newItem.name,
             price,
             quantity: 1,
+            paidAmount: 0,
           },
         ]);
         setNewItem({ name: "", price: "" });

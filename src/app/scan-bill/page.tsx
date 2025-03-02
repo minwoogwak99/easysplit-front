@@ -20,9 +20,8 @@ import {
   billItemsAtom,
   billProcessStepAtom,
   currentSessionAtom,
-  currentUserAtom,
 } from "@/store/atom";
-import { BillSession, SessionParticipant } from "@/type/types";
+import { BillSession } from "@/type/types";
 import { useAtom } from "jotai";
 import { ArrowLeft, Receipt } from "lucide-react";
 import Link from "next/link";
@@ -34,7 +33,6 @@ export default function ScanBill() {
   const [billProcessStep, setbillProcessStep] = useAtom(billProcessStepAtom);
   const [billItems, setBillItems] = useAtom(billItemsAtom);
   const [, setCurrentSession] = useAtom(currentSessionAtom);
-  const [, setCurrentUser] = useAtom(currentUserAtom);
   const [sessionTitle, setSessionTitle] = useState("");
   const [isCreatingSession, setIsCreatingSession] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -59,15 +57,6 @@ export default function ScanBill() {
       );
 
       if (user) {
-        // Create a participant object for the current user
-        const participant: SessionParticipant = {
-          id: user.uid,
-          name: user.displayName || "Session Creator",
-          email: user.email || undefined,
-          items: [],
-          totalAmount: 0,
-        };
-
         // Get the session data
         const sessionData: BillSession = {
           id: sessionId,
@@ -82,14 +71,15 @@ export default function ScanBill() {
               email: user.email || undefined,
               items: [],
               totalAmount: 0,
+              isPaid: false,
             },
           },
+          totalPaid: 0,
           status: "active",
         };
 
         // Update the atoms
         setCurrentSession(sessionData);
-        setCurrentUser(participant);
 
         router.push("/session/" + sessionId);
       } else {

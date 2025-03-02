@@ -91,9 +91,15 @@ export default function Dashboard() {
       );
     }
 
+    // Sort sessions by date (recent to older)
+    const sortedSessions = [...sessions].sort(
+      (a, b) =>
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+
     return (
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {sessions.map((session) => {
+        {sortedSessions.map((session) => {
           // Calculate total bill amount
           const totalAmount = session.items.reduce(
             (sum, item) => sum + item.price,
@@ -108,7 +114,7 @@ export default function Dashboard() {
               <CardHeader>
                 <CardTitle>{session.title}</CardTitle>
                 <CardDescription>
-                  Created {new Date(session.createdAt).toLocaleDateString()}
+                  Created {new Date(session.createdAt).toLocaleString()}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -210,8 +216,14 @@ export default function Dashboard() {
                     </div>
                   ) : (
                     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                      {[...createdSessions, ...participantSessions].map(
-                        (session) => {
+                      {/* Sort combined sessions by date (recent to older) */}
+                      {[...createdSessions, ...participantSessions]
+                        .sort(
+                          (a, b) =>
+                            new Date(b.createdAt).getTime() -
+                            new Date(a.createdAt).getTime()
+                        )
+                        .map((session) => {
                           // Calculate total bill amount
                           const totalAmount = session.items.reduce(
                             (sum, item) => sum + item.price,
@@ -229,9 +241,7 @@ export default function Dashboard() {
                                 <CardTitle>{session.title}</CardTitle>
                                 <CardDescription>
                                   Created{" "}
-                                  {new Date(
-                                    session.createdAt
-                                  ).toLocaleDateString()}
+                                  {new Date(session.createdAt).toLocaleString()}
                                 </CardDescription>
                               </CardHeader>
                               <CardContent>
@@ -264,8 +274,7 @@ export default function Dashboard() {
                               </CardFooter>
                             </Card>
                           );
-                        }
-                      )}
+                        })}
                     </div>
                   )}
                 </div>

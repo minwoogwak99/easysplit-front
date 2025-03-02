@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { auth } from "@/lib/firebase";
 import { billItemsAtom, billProcessStepAtom } from "@/store/atom";
+import { BillItem } from "@/type/types";
 import { useSetAtom } from "jotai";
 import { Upload, X } from "lucide-react";
 import Image from "next/image";
@@ -91,7 +92,14 @@ export function ImageUploader() {
         throw new Error("No items detected in the receipt. Please try a clearer image.");
       }
       
-      setBillItems(data.items);
+      // Ensure each item has the required paidAmount property
+      const itemsWithPaidAmount = data.items.map((item: Omit<BillItem, 'paidAmount' | 'assignedTo'>) => ({
+        ...item,
+        paidAmount: 0,
+        assignedTo: [] as string[]
+      }));
+      
+      setBillItems(itemsWithPaidAmount);
       setbillProcessStep("items");
     } catch (error) {
       console.error("Error processing receipt:", error);
