@@ -2,6 +2,7 @@
 
 import { BillItemsSelection } from "@/components/bill-items-selection";
 import { QrCodeGenerator } from "@/components/qr-code-generator";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -11,7 +12,14 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { endSession } from "@/lib/session-service";
+import { cn } from "@/lib/utils";
 import { currentSessionAtom } from "@/store/atom";
 import { useAtom } from "jotai";
 import { Share } from "lucide-react";
@@ -36,8 +44,37 @@ const Page = () => {
         <div className="border-t pt-6">
           <div className="flex justify-between pr-4">
             <h3 className="text-lg font-medium mb-4">Bill Items</h3>
-            <div className="text-lg font-semibold">
-              Your group paid total: ${currentSession?.totalPaid}
+            <div>
+              <div className="flex -space-x-2 ml-2">
+                {currentSession && (
+                  <TooltipProvider>
+                    {Object.entries(currentSession.participants).map(
+                      ([userId, user]) => (
+                        <Tooltip key={userId}>
+                          <TooltipTrigger asChild>
+                            <Avatar
+                              className={cn(
+                                "h-6 w-6 border-2 border-white",
+                                user.isPaid && "border-green-500"
+                              )}
+                            >
+                              <AvatarFallback className="text-xs">
+                                {user.name.charAt(0)}
+                              </AvatarFallback>
+                            </Avatar>
+                          </TooltipTrigger>
+                          <TooltipContent className="">
+                            <p>{user.name}</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      )
+                    )}
+                  </TooltipProvider>
+                )}
+              </div>
+              <div className="text-lg font-semibold">
+                Your group paid total: ${currentSession?.totalPaid}
+              </div>
             </div>
           </div>
           <BillItemsSelection currentSessionId={sessionid as string} />
